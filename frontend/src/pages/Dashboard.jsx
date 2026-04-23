@@ -53,7 +53,8 @@ export default function Dashboard({ user, onLogout }) {
 
   const [isRenaming, setIsRenaming] = useState(false);
   const [renameInput, setRenameInput] = useState('');
-  const [logFilter, setLogFilter] = useState('');
+  const [logFilterProp, setLogFilterProp] = useState('');
+  const [logFilterCleaner, setLogFilterCleaner] = useState('');
 
   const changeLanguage = (e) => {
     i18n.changeLanguage(e.target.value);
@@ -327,11 +328,16 @@ export default function Dashboard({ user, onLogout }) {
             onClick={() => setSelectedProperty(prop)}
             className="glass-panel rounded-2xl relative overflow-hidden group cursor-pointer transition-all touch-manipulation min-h-[140px] flex flex-col justify-end shadow-md mb-4 hover:shadow-lg"
           >
-            {/* Background Image Layer */}
-            {prop.bgImage && (
+            {/* Background Image Layer or Gradient Fallback */}
+            {prop.bgImage ? (
               <div 
                 className="absolute inset-0 bg-cover bg-center z-0 opacity-40 group-hover:opacity-50 transition-opacity"
-                style={{ backgroundImage: `url(${prop.bgImage})` }}
+                style={{ backgroundImage: `url("${prop.bgImage}")` }}
+              ></div>
+            ) : (
+              <div 
+                className="absolute inset-0 z-0 opacity-40 group-hover:opacity-50 transition-opacity"
+                style={{ background: `linear-gradient(to bottom right, ${prop.theme}, ${prop.secondaryTheme})` }}
               ></div>
             )}
             {/* Gradient Overlay */}
@@ -378,10 +384,15 @@ export default function Dashboard({ user, onLogout }) {
         {/* Dynamic Property Header */}
         <div className="relative w-full rounded-3xl overflow-hidden mb-6 shadow-xl border" style={{ borderColor: `${selectedProperty.theme}33`, boxShadow: `0 20px 25px -5px ${selectedProperty.theme}1a` }}>
           <div className="absolute inset-0 bg-gradient-to-r from-black/80 to-transparent z-10"></div>
-          {selectedProperty.bgImage && (
+          {selectedProperty.bgImage ? (
             <div 
               className="absolute inset-0 bg-cover bg-center z-0 opacity-60"
-              style={{ backgroundImage: `url(${selectedProperty.bgImage})` }}
+              style={{ backgroundImage: `url("${selectedProperty.bgImage}")` }}
+            ></div>
+          ) : (
+            <div 
+              className="absolute inset-0 z-0 opacity-60"
+              style={{ background: `linear-gradient(to bottom right, ${selectedProperty.theme}, ${selectedProperty.secondaryTheme})` }}
             ></div>
           )}
           <div className="relative z-20 p-6 flex items-center justify-between gap-4 min-h-[120px]">
@@ -420,165 +431,7 @@ export default function Dashboard({ user, onLogout }) {
           </div>
         </div>
 
-        {/* Property Settings Modal */}
-        {showPropertySettings && propSettingsData && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm touch-manipulation overflow-y-auto pt-20 pb-20">
-            <div className="glass-panel w-full max-w-md p-6 rounded-3xl shadow-2xl relative my-auto">
-              <button 
-                type="button" 
-                onClick={() => setShowPropertySettings(false)}
-                className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-              <h2 className="text-xl font-bold mb-4">Property Settings</h2>
-              
-              <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Property Name</label>
-                  <input 
-                    type="text" 
-                    value={propSettingsData.name}
-                    onChange={(e) => setPropSettingsData({...propSettingsData, name: e.target.value})}
-                    className="w-full glass-input px-3 py-3 rounded-xl focus:ring-2 outline-none font-medium"
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Primary Color</label>
-                    <input 
-                      type="color"
-                      value={propSettingsData.theme}
-                      onChange={(e) => setPropSettingsData({...propSettingsData, theme: e.target.value})}
-                      className="w-full h-12 rounded-xl cursor-pointer border-0 p-1 bg-white dark:bg-black/20"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Secondary Color</label>
-                    <input 
-                      type="color"
-                      value={propSettingsData.secondaryTheme}
-                      onChange={(e) => setPropSettingsData({...propSettingsData, secondaryTheme: e.target.value})}
-                      className="w-full h-12 rounded-xl cursor-pointer border-0 p-1 bg-white dark:bg-black/20"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Managers</label>
-                  <div className="flex flex-wrap gap-2">
-                    {systemUsers.filter(u => u.role === 'manager').map(u => (
-                      <button 
-                        key={u.id}
-                        type="button"
-                        onClick={() => {
-                          const managers = propSettingsData.managers.includes(u.id) 
-                            ? propSettingsData.managers.filter(id => id !== u.id)
-                            : [...propSettingsData.managers, u.id];
-                          setPropSettingsData({...propSettingsData, managers});
-                        }}
-                        className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors border ${propSettingsData.managers.includes(u.id) ? 'bg-amber-500 text-white border-amber-500' : 'bg-transparent border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300'}`}
-                      >
-                        {u.name}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Cleaners</label>
-                  <div className="flex flex-wrap gap-2">
-                    {systemUsers.filter(u => u.role === 'cleaner').map(u => (
-                      <button 
-                        key={u.id}
-                        type="button"
-                        onClick={() => {
-                          const cleaners = propSettingsData.cleaners.includes(u.id) 
-                            ? propSettingsData.cleaners.filter(id => id !== u.id)
-                            : [...propSettingsData.cleaners, u.id];
-                          setPropSettingsData({...propSettingsData, cleaners});
-                        }}
-                        className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors border ${propSettingsData.cleaners.includes(u.id) ? 'bg-emerald-500 text-white border-emerald-500' : 'bg-transparent border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300'}`}
-                      >
-                        {u.name}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3 pt-2">
-                  <div className="relative">
-                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Logo</label>
-                    <input 
-                      type="file" 
-                      accept="image/*" 
-                      onChange={(e) => {
-                        if (e.target.files[0]) {
-                          setPropSettingsData({...propSettingsData, logo: URL.createObjectURL(e.target.files[0])});
-                        }
-                      }}
-                      className="absolute inset-0 top-6 w-full h-[48px] opacity-0 cursor-pointer z-10"
-                    />
-                    <div className="w-full h-[48px] glass-input rounded-xl text-sm font-medium flex items-center justify-center border-dashed border-2">
-                      Upload Logo
-                    </div>
-                  </div>
-                  <div className="relative">
-                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Background</label>
-                    <input 
-                      type="file" 
-                      accept="image/*" 
-                      onChange={(e) => {
-                        if (e.target.files[0]) {
-                          setPropSettingsData({...propSettingsData, bgImage: URL.createObjectURL(e.target.files[0])});
-                        }
-                      }}
-                      className="absolute inset-0 top-6 w-full h-[48px] opacity-0 cursor-pointer z-10"
-                    />
-                    <div className="w-full h-[48px] glass-input rounded-xl text-sm font-medium flex items-center justify-center border-dashed border-2">
-                      Upload Bg
-                    </div>
-                  </div>
-                </div>
-
-                <div className="pt-4 flex gap-2">
-                  <button 
-                    type="button"
-                    onClick={() => {
-                      setProperties(properties.map(p => p.id === propSettingsData.id ? propSettingsData : p));
-                      setSelectedProperty(propSettingsData);
-                      setShowPropertySettings(false);
-                    }}
-                    className="flex-1 glass-button py-3 rounded-xl font-bold"
-                  >
-                    Save Changes
-                  </button>
-                </div>
-                
-                <div className="pt-2 border-t border-gray-200 dark:border-gray-700 mt-4">
-                  <button 
-                    type="button"
-                    onClick={() => {
-                      if (window.confirm('Are you sure you want to delete this property? This action cannot be undone.')) {
-                        setProperties(properties.filter(p => p.id !== propSettingsData.id));
-                        setRooms(rooms.filter(r => r.propertyId !== propSettingsData.id));
-                        setShowPropertySettings(false);
-                        setSelectedProperty(null);
-                      }
-                    }}
-                    className="w-full bg-red-50 hover:bg-red-100 text-red-600 dark:bg-red-900/20 dark:hover:bg-red-900/40 py-3 rounded-xl font-bold transition-colors"
-                  >
-                    Delete Property
-                  </button>
-                </div>
-
-              </div>
-            </div>
-          </div>
-        )}
+        {/* Property Settings View code is moved out */}
 
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-lg font-bold">Rooms</h3>
@@ -733,6 +586,171 @@ export default function Dashboard({ user, onLogout }) {
     );
   };
 
+  const renderPropertySettings = () => {
+    if (!propSettingsData) return null;
+    return (
+      <div className="space-y-4">
+        <button 
+          onClick={() => setShowPropertySettings(false)}
+          className="text-sm text-gray-500 mb-2 flex items-center hover:text-gray-800 dark:hover:text-gray-200 p-2 -ml-2 touch-manipulation"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+            <path fillRule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clipRule="evenodd" />
+          </svg>
+          Back to Dashboard
+        </button>
+
+        <div className="glass-panel w-full p-6 rounded-3xl shadow-lg relative">
+          <h2 className="text-xl font-bold mb-4">Property Settings</h2>
+          
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Property Name</label>
+              <input 
+                type="text" 
+                value={propSettingsData.name}
+                onChange={(e) => setPropSettingsData({...propSettingsData, name: e.target.value})}
+                className="w-full glass-input px-3 py-3 rounded-xl focus:ring-2 outline-none font-medium"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Primary Color</label>
+                <input 
+                  type="color"
+                  value={propSettingsData.theme}
+                  onChange={(e) => setPropSettingsData({...propSettingsData, theme: e.target.value})}
+                  className="w-full h-12 rounded-xl cursor-pointer border-0 p-1 bg-white dark:bg-black/20"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Secondary Color</label>
+                <input 
+                  type="color"
+                  value={propSettingsData.secondaryTheme}
+                  onChange={(e) => setPropSettingsData({...propSettingsData, secondaryTheme: e.target.value})}
+                  className="w-full h-12 rounded-xl cursor-pointer border-0 p-1 bg-white dark:bg-black/20"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Managers</label>
+              <div className="flex flex-wrap gap-2">
+                {systemUsers.filter(u => u.role === 'manager').map(u => (
+                  <button 
+                    key={u.id}
+                    type="button"
+                    onClick={() => {
+                      const managers = propSettingsData.managers.includes(u.id) 
+                        ? propSettingsData.managers.filter(id => id !== u.id)
+                        : [...propSettingsData.managers, u.id];
+                      setPropSettingsData({...propSettingsData, managers});
+                    }}
+                    className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors border ${propSettingsData.managers.includes(u.id) ? 'bg-emerald-500 text-white border-emerald-500' : 'bg-transparent border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300'}`}
+                    style={propSettingsData.managers.includes(u.id) ? { backgroundColor: propSettingsData.theme, borderColor: propSettingsData.theme } : {}}
+                  >
+                    {u.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Cleaners</label>
+              <div className="flex flex-wrap gap-2">
+                {systemUsers.filter(u => u.role === 'cleaner').map(u => (
+                  <button 
+                    key={u.id}
+                    type="button"
+                    onClick={() => {
+                      const cleaners = propSettingsData.cleaners.includes(u.id) 
+                        ? propSettingsData.cleaners.filter(id => id !== u.id)
+                        : [...propSettingsData.cleaners, u.id];
+                      setPropSettingsData({...propSettingsData, cleaners});
+                    }}
+                    className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors border ${propSettingsData.cleaners.includes(u.id) ? 'bg-emerald-500 text-white border-emerald-500' : 'bg-transparent border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300'}`}
+                    style={propSettingsData.cleaners.includes(u.id) ? { backgroundColor: propSettingsData.theme, borderColor: propSettingsData.theme } : {}}
+                  >
+                    {u.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 pt-2">
+              <div className="relative">
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Logo</label>
+                <input 
+                  type="file" 
+                  accept="image/*" 
+                  onChange={(e) => {
+                    if (e.target.files[0]) {
+                      setPropSettingsData({...propSettingsData, logo: URL.createObjectURL(e.target.files[0])});
+                    }
+                  }}
+                  className="absolute inset-0 top-6 w-full h-[48px] opacity-0 cursor-pointer z-10"
+                />
+                <div className="w-full h-[48px] glass-input rounded-xl text-sm font-medium flex items-center justify-center border-dashed border-2">
+                  Upload Logo
+                </div>
+              </div>
+              <div className="relative">
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Background</label>
+                <input 
+                  type="file" 
+                  accept="image/*" 
+                  onChange={(e) => {
+                    if (e.target.files[0]) {
+                      setPropSettingsData({...propSettingsData, bgImage: URL.createObjectURL(e.target.files[0])});
+                    }
+                  }}
+                  className="absolute inset-0 top-6 w-full h-[48px] opacity-0 cursor-pointer z-10"
+                />
+                <div className="w-full h-[48px] glass-input rounded-xl text-sm font-medium flex items-center justify-center border-dashed border-2">
+                  Upload Bg
+                </div>
+              </div>
+            </div>
+
+            <div className="pt-4 flex gap-2">
+              <button 
+                type="button"
+                onClick={() => {
+                  setProperties(properties.map(p => p.id === propSettingsData.id ? propSettingsData : p));
+                  setSelectedProperty(propSettingsData);
+                  setShowPropertySettings(false);
+                }}
+                className="flex-1 text-white py-3 rounded-xl font-bold transition-opacity hover:opacity-90 shadow-lg"
+                style={{ background: `linear-gradient(to right, ${propSettingsData.theme}, ${propSettingsData.secondaryTheme})` }}
+              >
+                Save Changes
+              </button>
+            </div>
+            
+            <div className="pt-2 border-t border-gray-200 dark:border-gray-700 mt-4">
+              <button 
+                type="button"
+                onClick={() => {
+                  if (window.confirm('Are you sure you want to delete this property? This action cannot be undone.')) {
+                    setProperties(properties.filter(p => p.id !== propSettingsData.id));
+                    setRooms(rooms.filter(r => r.propertyId !== propSettingsData.id));
+                    setShowPropertySettings(false);
+                    setSelectedProperty(null);
+                  }
+                }}
+                className="w-full bg-red-50 hover:bg-red-100 text-red-600 dark:bg-red-900/20 dark:hover:bg-red-900/40 py-3 rounded-xl font-bold transition-colors"
+              >
+                Delete Property
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   const renderLogsView = () => {
     // Collect all logs
     const allLogs = [];
@@ -749,21 +767,35 @@ export default function Dashboard({ user, onLogout }) {
     
     // Filter
     const filteredLogs = allLogs.filter(l => 
-      l.user.toLowerCase().includes(logFilter.toLowerCase()) || 
-      l.roomName.toLowerCase().includes(logFilter.toLowerCase()) ||
-      l.propName.toLowerCase().includes(logFilter.toLowerCase())
+      (logFilterCleaner === '' || l.user === logFilterCleaner) &&
+      (logFilterProp === '' || l.propName === logFilterProp)
     );
+    
+    const uniqueCleaners = [...new Set(allLogs.map(l => l.user))];
+    const uniqueProps = [...new Set(allLogs.map(l => l.propName))];
 
     return (
       <div className="space-y-4">
         <h2 className="text-xl font-bold mb-4">Cleaning Logs</h2>
-        <input 
-          type="text" 
-          placeholder="Filter by property, room, or cleaner..."
-          value={logFilter}
-          onChange={(e) => setLogFilter(e.target.value)}
-          className="w-full glass-input px-4 py-3 rounded-xl mb-4 focus:ring-2 focus:ring-emerald-500/50 outline-none font-medium"
-        />
+        
+        <div className="flex gap-2 mb-4">
+          <select 
+            value={logFilterProp} 
+            onChange={e => setLogFilterProp(e.target.value)} 
+            className="flex-1 glass-input px-3 py-2 rounded-xl outline-none font-medium text-sm appearance-none bg-white/50 dark:bg-black/20"
+          >
+            <option value="">All Properties</option>
+            {uniqueProps.map(p => <option key={p} value={p}>{p}</option>)}
+          </select>
+          <select 
+            value={logFilterCleaner} 
+            onChange={e => setLogFilterCleaner(e.target.value)} 
+            className="flex-1 glass-input px-3 py-2 rounded-xl outline-none font-medium text-sm appearance-none bg-white/50 dark:bg-black/20"
+          >
+            <option value="">All Cleaners</option>
+            {uniqueCleaners.map(c => <option key={c} value={c}>{c}</option>)}
+          </select>
+        </div>
         
         <div className="space-y-3">
           {filteredLogs.map((log, i) => (
@@ -1172,7 +1204,7 @@ export default function Dashboard({ user, onLogout }) {
           renderRoomChecklist()
         ) : (
           <>
-            {activeTab === 'properties' && (selectedProperty ? renderPropertyOverview() : renderPropertySelection())}
+            {activeTab === 'properties' && (selectedProperty ? (showPropertySettings ? renderPropertySettings() : renderPropertyOverview()) : renderPropertySelection())}
             {activeTab === 'rooms' && renderUnifiedRooms()}
             {activeTab === 'logs' && renderLogsView()}
             
