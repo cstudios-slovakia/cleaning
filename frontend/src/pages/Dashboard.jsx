@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
 export default function Dashboard({ user, onLogout }) {
@@ -9,8 +9,8 @@ export default function Dashboard({ user, onLogout }) {
 
   // State for properties and rooms
   const [properties, setProperties] = useState([
-    { id: 1, name: 'Central Apartment', theme: 'emerald' },
-    { id: 2, name: 'Sunrise Villa', theme: 'amber' }
+    { id: 1, name: 'Central Apartment', theme: 'emerald', logo: null, bgImage: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&q=80&w=800' },
+    { id: 2, name: 'Sunrise Villa', theme: 'amber', logo: null, bgImage: 'https://images.unsplash.com/photo-1493809842364-78817add7ffb?auto=format&fit=crop&q=80&w=800' }
   ]);
   const [rooms, setRooms] = useState([
     { id: 1, propertyId: 1, name: 'Room 201 - Master Bedroom', status: 'overdue', deadline: '10:00', checklist: [{id: 1, text: 'Change sheets', done: false}, {id: 2, text: 'Clean bathroom', done: false}, {id: 3, text: 'Empty trash', done: false}] },
@@ -21,6 +21,12 @@ export default function Dashboard({ user, onLogout }) {
   // Form states
   const [showAddProperty, setShowAddProperty] = useState(false);
   const [newPropertyName, setNewPropertyName] = useState('');
+  const [newPropertyTheme, setNewPropertyTheme] = useState('emerald');
+  const [newPropertyLogo, setNewPropertyLogo] = useState(null);
+  const [newPropertyBg, setNewPropertyBg] = useState(null);
+  
+  const logoInputRef = useRef(null);
+  const bgInputRef = useRef(null);
   
   const [showAddRoom, setShowAddRoom] = useState(false);
   const [newRoomName, setNewRoomName] = useState('');
@@ -38,10 +44,15 @@ export default function Dashboard({ user, onLogout }) {
       const newProp = {
         id: Date.now(),
         name: newPropertyName,
-        theme: properties.length % 2 === 0 ? 'emerald' : 'amber'
+        theme: newPropertyTheme,
+        logo: newPropertyLogo ? URL.createObjectURL(newPropertyLogo) : null,
+        bgImage: newPropertyBg ? URL.createObjectURL(newPropertyBg) : null
       };
       setProperties([...properties, newProp]);
       setNewPropertyName('');
+      setNewPropertyTheme('emerald');
+      setNewPropertyLogo(null);
+      setNewPropertyBg(null);
       setShowAddProperty(false);
     }
   };
@@ -124,17 +135,67 @@ export default function Dashboard({ user, onLogout }) {
       </div>
 
       {showAddProperty && (
-        <form onSubmit={handleAddProperty} className="glass-panel p-4 rounded-xl mb-4 flex gap-2">
-          <input 
-            type="text" 
-            value={newPropertyName}
-            onChange={(e) => setNewPropertyName(e.target.value)}
-            placeholder="Property Name..."
-            className="flex-1 glass-input px-3 py-2 rounded-lg focus:ring-2 focus:ring-emerald-500/50 outline-none"
-            autoFocus
-          />
-          <button type="submit" className="glass-button px-4 rounded-lg font-bold">Save</button>
-          <button type="button" onClick={() => setShowAddProperty(false)} className="text-gray-500 px-2">Cancel</button>
+        <form onSubmit={handleAddProperty} className="glass-panel p-5 rounded-2xl mb-6 space-y-4 shadow-lg shadow-black/5 dark:shadow-black/20 border border-emerald-500/20">
+          <h3 className="font-bold text-lg mb-2">Create New Property</h3>
+          
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Property Name</label>
+            <input 
+              type="text" 
+              value={newPropertyName}
+              onChange={(e) => setNewPropertyName(e.target.value)}
+              placeholder="e.g. Grand Hotel"
+              className="w-full glass-input px-3 py-3 rounded-xl focus:ring-2 focus:ring-emerald-500/50 outline-none font-medium"
+              autoFocus
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Theme Color</label>
+            <select 
+              value={newPropertyTheme}
+              onChange={(e) => setNewPropertyTheme(e.target.value)}
+              className="w-full glass-input px-3 py-3 rounded-xl focus:ring-2 focus:ring-emerald-500/50 outline-none font-medium appearance-none"
+            >
+              <option value="emerald">Emerald Green</option>
+              <option value="amber">Amber Gold</option>
+              <option value="blue">Ocean Blue</option>
+              <option value="purple">Royal Purple</option>
+              <option value="rose">Rose Red</option>
+            </select>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Logo</label>
+              <button 
+                type="button"
+                onClick={() => logoInputRef.current.click()}
+                className="w-full glass-input px-3 py-3 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-400 flex items-center justify-center border-dashed border-2 hover:border-emerald-500 transition-colors"
+              >
+                {newPropertyLogo ? '✓ Selected' : '+ Upload Logo'}
+              </button>
+              <input type="file" accept="image/*" className="hidden" ref={logoInputRef} onChange={(e) => setNewPropertyLogo(e.target.files[0])} />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Background Image</label>
+              <button 
+                type="button"
+                onClick={() => bgInputRef.current.click()}
+                className="w-full glass-input px-3 py-3 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-400 flex items-center justify-center border-dashed border-2 hover:border-emerald-500 transition-colors"
+              >
+                {newPropertyBg ? '✓ Selected' : '+ Upload Image'}
+              </button>
+              <input type="file" accept="image/*" className="hidden" ref={bgInputRef} onChange={(e) => setNewPropertyBg(e.target.files[0])} />
+            </div>
+          </div>
+
+          <div className="flex gap-2 pt-2">
+            <button type="submit" className="flex-1 glass-button py-3 rounded-xl font-bold">Save Property</button>
+            <button type="button" onClick={() => setShowAddProperty(false)} className="flex-1 bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-xl font-bold">Cancel</button>
+          </div>
         </form>
       )}
 
@@ -146,13 +207,31 @@ export default function Dashboard({ user, onLogout }) {
           <div 
             key={prop.id}
             onClick={() => setSelectedProperty(prop)}
-            className={`glass-panel p-6 rounded-2xl relative overflow-hidden group cursor-pointer hover:border-${prop.theme}-500 transition-colors touch-manipulation`}
+            className={`glass-panel rounded-2xl relative overflow-hidden group cursor-pointer hover:border-${prop.theme}-500 transition-all touch-manipulation min-h-[140px] flex flex-col justify-end shadow-md`}
           >
-            <div className={`absolute top-0 right-0 w-32 h-32 bg-${prop.theme}-500/10 rounded-full blur-2xl -mr-10 -mt-10`}></div>
-            <h3 className="font-bold text-xl">{prop.name}</h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
-              {propRooms.length} {t('dashboard.rooms')} • {pendingCount === 0 ? t('dashboard.all_clean') : `${pendingCount} ${t('dashboard.need_cleaning')}`}
-            </p>
+            {/* Background Image Layer */}
+            {prop.bgImage && (
+              <div 
+                className="absolute inset-0 bg-cover bg-center z-0 opacity-40 group-hover:opacity-50 transition-opacity"
+                style={{ backgroundImage: `url(${prop.bgImage})` }}
+              ></div>
+            )}
+            {/* Gradient Overlay */}
+            <div className={`absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent z-10`}></div>
+            
+            <div className="relative z-20 p-5 w-full flex items-end justify-between">
+              <div>
+                <h3 className="font-bold text-2xl text-white drop-shadow-md">{prop.name}</h3>
+                <p className={`text-sm text-${prop.theme}-300 font-medium drop-shadow mt-1`}>
+                  {propRooms.length} {t('dashboard.rooms')} • {pendingCount === 0 ? t('dashboard.all_clean') : `${pendingCount} ${t('dashboard.need_cleaning')}`}
+                </p>
+              </div>
+              {prop.logo && (
+                <div className="w-14 h-14 bg-white/90 backdrop-blur-md rounded-xl shadow-lg overflow-hidden border-2 border-white/50 flex-shrink-0">
+                  <img src={prop.logo} alt="logo" className="w-full h-full object-contain" />
+                </div>
+              )}
+            </div>
           </div>
         );
       })}
@@ -178,12 +257,40 @@ export default function Dashboard({ user, onLogout }) {
           Back to Properties
         </button>
         
+        {/* Dynamic Property Header */}
+        <div className={`relative w-full rounded-3xl overflow-hidden mb-6 shadow-xl shadow-${selectedProperty.theme}-500/10 border border-${selectedProperty.theme}-500/20`}>
+          <div className="absolute inset-0 bg-gradient-to-r from-black/80 to-transparent z-10"></div>
+          {selectedProperty.bgImage && (
+            <div 
+              className="absolute inset-0 bg-cover bg-center z-0 opacity-60"
+              style={{ backgroundImage: `url(${selectedProperty.bgImage})` }}
+            ></div>
+          )}
+          <div className="relative z-20 p-6 flex items-center gap-4 min-h-[120px]">
+            {selectedProperty.logo ? (
+              <div className="w-16 h-16 bg-white/90 backdrop-blur-md rounded-2xl shadow-lg overflow-hidden border-2 border-white/50 flex-shrink-0 flex items-center justify-center p-1">
+                <img src={selectedProperty.logo} alt="logo" className="max-w-full max-h-full object-contain" />
+              </div>
+            ) : (
+              <div className={`w-16 h-16 bg-gradient-to-br from-${selectedProperty.theme}-400 to-${selectedProperty.theme}-600 rounded-2xl shadow-lg flex-shrink-0 flex items-center justify-center text-white text-2xl font-bold`}>
+                {selectedProperty.name.charAt(0)}
+              </div>
+            )}
+            <div>
+              <h2 className="text-2xl font-black text-white drop-shadow-md leading-tight">{selectedProperty.name}</h2>
+              <span className={`inline-block mt-1 px-2.5 py-0.5 rounded-full bg-${selectedProperty.theme}-500/30 border border-${selectedProperty.theme}-500/50 text-${selectedProperty.theme}-100 text-xs font-bold backdrop-blur-md`}>
+                Active Dashboard
+              </span>
+            </div>
+          </div>
+        </div>
+
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold">{selectedProperty.name}</h2>
+          <h3 className="text-lg font-bold">Rooms</h3>
           {user.role !== 'cleaner' && (
             <button 
               onClick={() => setShowAddRoom(true)}
-              className="bg-amber-500 hover:bg-amber-600 text-white px-3 py-1.5 rounded-lg text-sm font-semibold shadow-sm touch-manipulation"
+              className={`bg-${selectedProperty.theme}-500 hover:bg-${selectedProperty.theme}-600 text-white px-3 py-1.5 rounded-lg text-sm font-semibold shadow-sm touch-manipulation`}
             >
               + Add Room
             </button>
