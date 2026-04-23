@@ -13,9 +13,9 @@ export default function Dashboard({ user, onLogout }) {
     { id: 2, name: 'Sunrise Villa', theme: 'amber', logo: null, bgImage: 'https://images.unsplash.com/photo-1493809842364-78817add7ffb?auto=format&fit=crop&q=80&w=800' }
   ]);
   const [rooms, setRooms] = useState([
-    { id: 1, propertyId: 1, name: 'Room 201 - Master Bedroom', status: 'overdue', deadline: '10:00', date: new Date().toISOString().split('T')[0], checklist: [{id: 1, text: 'Change sheets', done: false}, {id: 2, text: 'Clean bathroom', done: false}, {id: 3, text: 'Empty trash', done: false}] },
-    { id: 2, propertyId: 2, name: 'Room 105 - Bathroom', status: 'pending', deadline: '14:00', date: new Date().toISOString().split('T')[0], checklist: [{id: 1, text: 'Scrub toilet', done: false}, {id: 2, text: 'Clean mirror', done: false}, {id: 3, text: 'Mop floor', done: false}] },
-    { id: 3, propertyId: 2, name: 'Room 302 - Living Area', status: 'clean', cleanedBy: 'Anna', deadline: '12:00', date: new Date().toISOString().split('T')[0], checklist: [{id: 1, text: 'Vacuum carpet', done: true}, {id: 2, text: 'Dust shelves', done: true}] }
+    { id: 1, propertyId: 1, name: 'Room 201 - Master Bedroom', status: 'overdue', deadline: '10:00', date: new Date().toISOString().split('T')[0], logs: [], checklist: [{id: 1, text: 'Change sheets', done: false}, {id: 2, text: 'Clean bathroom', done: false}, {id: 3, text: 'Empty trash', done: false}] },
+    { id: 2, propertyId: 2, name: 'Room 105 - Bathroom', status: 'pending', deadline: '14:00', date: new Date().toISOString().split('T')[0], logs: [], checklist: [{id: 1, text: 'Scrub toilet', done: false}, {id: 2, text: 'Clean mirror', done: false}, {id: 3, text: 'Mop floor', done: false}] },
+    { id: 3, propertyId: 2, name: 'Room 302 - Living Area', status: 'clean', cleanedBy: 'Anna', deadline: '12:00', date: new Date().toISOString().split('T')[0], logs: [{date: new Date().toISOString().split('T')[0], time: '11:45', user: 'Anna'}], checklist: [{id: 1, text: 'Vacuum carpet', done: true}, {id: 2, text: 'Dust shelves', done: true}] }
   ]);
 
   // Form states
@@ -39,6 +39,9 @@ export default function Dashboard({ user, onLogout }) {
   
   const [showEditSchedule, setShowEditSchedule] = useState(false);
   const [scheduleData, setScheduleData] = useState({ date: '', time: '' });
+
+  const [isRenaming, setIsRenaming] = useState(false);
+  const [renameInput, setRenameInput] = useState('');
 
   const changeLanguage = (e) => {
     i18n.changeLanguage(e.target.value);
@@ -108,23 +111,38 @@ export default function Dashboard({ user, onLogout }) {
 
   const handleUpdateSchedule = (e) => {
     e.preventDefault();
-    if (selectedRoom) {
+    if (scheduleData.roomId) {
+      // Global schedule edit from clicking label
+      const updatedRooms = rooms.map(r => {
+        if (r.id === scheduleData.roomId) {
+          return { ...r, date: scheduleData.date, deadline: scheduleData.time, status: 'pending', cleanedBy: null, checklist: r.checklist.map(t => ({...t, done: false})) };
+        }
+        return r;
+      });
+      setRooms(updatedRooms);
+      if (selectedRoom && selectedRoom.id === scheduleData.roomId) setSelectedRoom(updatedRooms.find(r => r.id === scheduleData.roomId));
+      setShowEditSchedule(false);
+    } else if (selectedRoom) {
+      // Inline schedule edit from room view
       const updatedRooms = rooms.map(r => {
         if (r.id === selectedRoom.id) {
-          return {
-            ...r,
-            date: scheduleData.date,
-            deadline: scheduleData.time,
-            status: 'pending',
-            cleanedBy: null,
-            checklist: r.checklist.map(t => ({...t, done: false})) // reset checklist for new cleaning
-          };
+          return { ...r, date: scheduleData.date, deadline: scheduleData.time, status: 'pending', cleanedBy: null, checklist: r.checklist.map(t => ({...t, done: false})) };
         }
         return r;
       });
       setRooms(updatedRooms);
       setSelectedRoom(updatedRooms.find(r => r.id === selectedRoom.id));
       setShowEditSchedule(false);
+    }
+  };
+
+  const handleRenameSubmit = (e) => {
+    e.preventDefault();
+    if (renameInput.trim() && selectedRoom) {
+      const updatedRooms = rooms.map(r => r.id === selectedRoom.id ? { ...r, name: renameInput } : r);
+      setRooms(updatedRooms);
+      setSelectedRoom({ ...selectedRoom, name: renameInput });
+      setIsRenaming(false);
     }
   };
 
@@ -175,8 +193,14 @@ export default function Dashboard({ user, onLogout }) {
         );
         // Automatically mark room clean if all tasks are done
         const allDone = newChecklist.length > 0 && newChecklist.every(t => t.done);
+        let logs = r.logs || [];
+        if (allDone && r.status !== 'clean') {
+          const now = new Date();
+          logs = [{ date: now.toISOString().split('T')[0], time: `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`, user: user.name }, ...logs];
+        }
         return { 
           ...r, 
+          logs,
           checklist: newChecklist,
           status: allDone ? 'clean' : (r.status === 'clean' ? 'pending' : r.status),
           cleanedBy: allDone ? user.name : null
@@ -459,7 +483,16 @@ export default function Dashboard({ user, onLogout }) {
                 }`}>
                   {room.status === 'overdue' ? 'Overdue!' : room.status === 'pending' ? 'Pending' : `Cleaned by ${room.cleanedBy || 'System'}`}
                 </span>
-                <span className="text-xs text-gray-500 dark:text-gray-400 font-bold bg-white/50 dark:bg-black/30 px-2 py-1 rounded-md">
+                <span 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (user.role !== 'cleaner') {
+                      setScheduleData({ roomId: room.id, date: room.date || new Date().toISOString().split('T')[0], time: room.deadline || '12:00' });
+                      setShowEditSchedule(true);
+                    }
+                  }}
+                  className={`text-xs font-bold px-2 py-1 rounded-md transition-colors ${user.role !== 'cleaner' ? 'cursor-pointer hover:bg-emerald-100 dark:hover:bg-emerald-900/50 bg-white/50 dark:bg-black/30 text-gray-500 dark:text-gray-400' : 'text-gray-500 dark:text-gray-400 bg-white/50 dark:bg-black/30'}`}
+                >
                   Next: {room.date} {room.deadline}
                 </span>
               </div>
@@ -525,7 +558,16 @@ export default function Dashboard({ user, onLogout }) {
                 }`}>
                   {room.status === 'overdue' ? 'Overdue!' : room.status === 'pending' ? 'Pending' : `Cleaned by ${room.cleanedBy || 'System'}`}
                 </span>
-                <span className="text-xs text-gray-500 dark:text-gray-400 font-bold bg-white/50 dark:bg-black/30 px-2 py-1 rounded-md">
+                <span 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (user.role !== 'cleaner') {
+                      setScheduleData({ roomId: room.id, date: room.date || new Date().toISOString().split('T')[0], time: room.deadline || '12:00' });
+                      setShowEditSchedule(true);
+                    }
+                  }}
+                  className={`text-xs font-bold px-2 py-1 rounded-md transition-colors ${user.role !== 'cleaner' ? 'cursor-pointer hover:bg-emerald-100 dark:hover:bg-emerald-900/50 bg-white/50 dark:bg-black/30 text-gray-500 dark:text-gray-400' : 'text-gray-500 dark:text-gray-400 bg-white/50 dark:bg-black/30'}`}
+                >
                   Next: {room.date} {room.deadline}
                 </span>
               </div>
@@ -600,9 +642,36 @@ export default function Dashboard({ user, onLogout }) {
           )}
           
           <div className="flex justify-between items-start">
-            <div>
+            <div className="flex-1">
               <p className={`text-sm text-${prop?.theme}-600 dark:text-${prop?.theme}-400 font-semibold mb-1`}>{prop?.name}</p>
-              <h2 className="text-2xl font-bold">{selectedRoom.name}</h2>
+              
+              {isRenaming ? (
+                <form onSubmit={handleRenameSubmit} className="flex items-center gap-2 mb-2">
+                  <input 
+                    type="text" 
+                    value={renameInput}
+                    onChange={(e) => setRenameInput(e.target.value)}
+                    className="glass-input px-2 py-1 rounded-lg text-lg font-bold outline-none flex-1"
+                    autoFocus
+                  />
+                  <button type="submit" className="bg-emerald-500 text-white px-2 py-1 rounded-lg text-xs font-bold">Save</button>
+                  <button type="button" onClick={() => setIsRenaming(false)} className="text-gray-500 text-xs">Cancel</button>
+                </form>
+              ) : (
+                <div className="flex items-center gap-2 group">
+                  <h2 className="text-2xl font-bold">{selectedRoom.name}</h2>
+                  {user.role !== 'cleaner' && (
+                    <button 
+                      onClick={() => { setRenameInput(selectedRoom.name); setIsRenaming(true); }}
+                      className="opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-emerald-500 p-1 touch-manipulation"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                      </svg>
+                    </button>
+                  )}
+                </div>
+              )}
               {selectedRoom.status === 'clean' ? (
                  <div className="mt-3 inline-flex items-center bg-emerald-100 text-emerald-800 dark:bg-emerald-900/50 dark:text-emerald-300 text-xs font-bold px-2 py-1 rounded-full">
                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
@@ -740,12 +809,15 @@ export default function Dashboard({ user, onLogout }) {
             <button 
               onClick={() => {
                 // Force mark all as done
+                const now = new Date();
+                const logEntry = { date: now.toISOString().split('T')[0], time: `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`, user: user.name };
                 const updatedRooms = rooms.map(r => {
                   if (r.id === selectedRoom.id) {
                     return {
                       ...r,
                       status: 'clean',
                       cleanedBy: user.name,
+                      logs: [logEntry, ...(r.logs || [])],
                       checklist: r.checklist.map(t => ({...t, done: true}))
                     };
                   }
@@ -760,6 +832,36 @@ export default function Dashboard({ user, onLogout }) {
             </button>
           </div>
         )}
+
+        {/* Cleaning Logs */}
+        <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
+          <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-4">Cleaning Logs</h3>
+          {selectedRoom.logs && selectedRoom.logs.length > 0 ? (
+            <div className="space-y-3">
+              {selectedRoom.logs.map((log, i) => (
+                <div key={i} className="glass-panel p-3 rounded-xl flex items-center justify-between opacity-80">
+                  <div className="flex items-center">
+                    <div className="w-8 h-8 rounded-full bg-emerald-500/20 text-emerald-600 flex items-center justify-center font-bold mr-3">
+                      {log.user.charAt(0)}
+                    </div>
+                    <div>
+                      <p className="font-semibold text-sm">{log.user}</p>
+                      <p className="text-xs text-gray-500">{log.date} at {log.time}</p>
+                    </div>
+                  </div>
+                  <span className="text-xs font-bold text-emerald-500 flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                    Cleaned
+                  </span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-xs text-gray-400 italic">No cleaning logs recorded for this room yet.</p>
+          )}
+        </div>
       </div>
     );
   };
