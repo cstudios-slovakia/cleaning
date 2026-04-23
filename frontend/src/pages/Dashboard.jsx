@@ -16,8 +16,8 @@ export default function Dashboard({ user, onLogout }) {
   ]);
 
   const [properties, setProperties] = useState([
-    { id: 1, name: 'Central Apartment', theme: 'emerald', secondaryTheme: 'teal', managers: [3, 4], cleaners: [1, 2], logo: null, bgImage: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&q=80&w=800' },
-    { id: 2, name: 'Sunrise Villa', theme: 'amber', secondaryTheme: 'orange', managers: [4], cleaners: [1], logo: null, bgImage: 'https://images.unsplash.com/photo-1493809842364-78817add7ffb?auto=format&fit=crop&q=80&w=800' }
+    { id: 1, name: 'Central Apartment', theme: '#10b981', secondaryTheme: '#059669', managers: [3, 4], cleaners: [1, 2], logo: null, bgImage: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&q=80&w=800' },
+    { id: 2, name: 'Sunrise Villa', theme: '#f59e0b', secondaryTheme: '#d97706', managers: [4], cleaners: [1], logo: null, bgImage: 'https://images.unsplash.com/photo-1493809842364-78817add7ffb?auto=format&fit=crop&q=80&w=800' }
   ]);
   const [rooms, setRooms] = useState([
     { id: 1, propertyId: 1, name: 'Room 201 - Master Bedroom', status: 'overdue', deadline: '10:00', date: new Date().toISOString().split('T')[0], logs: [], checklist: [{id: 1, text: 'Change sheets', done: false}, {id: 2, text: 'Clean bathroom', done: false}, {id: 3, text: 'Empty trash', done: false}] },
@@ -28,7 +28,8 @@ export default function Dashboard({ user, onLogout }) {
   // Form states
   const [showAddProperty, setShowAddProperty] = useState(false);
   const [newPropertyName, setNewPropertyName] = useState('');
-  const [newPropertyTheme, setNewPropertyTheme] = useState('emerald');
+  const [newPropertyTheme, setNewPropertyTheme] = useState('#10b981');
+  const [newPropertySecondary, setNewPropertySecondary] = useState('#059669');
   const [newPropertyLogo, setNewPropertyLogo] = useState(null);
   const [newPropertyBg, setNewPropertyBg] = useState(null);
   
@@ -52,6 +53,7 @@ export default function Dashboard({ user, onLogout }) {
 
   const [isRenaming, setIsRenaming] = useState(false);
   const [renameInput, setRenameInput] = useState('');
+  const [logFilter, setLogFilter] = useState('');
 
   const changeLanguage = (e) => {
     i18n.changeLanguage(e.target.value);
@@ -64,7 +66,7 @@ export default function Dashboard({ user, onLogout }) {
         id: Date.now(),
         name: newPropertyName,
         theme: newPropertyTheme,
-        secondaryTheme: newPropertyTheme, // default
+        secondaryTheme: newPropertySecondary,
         managers: [user.id || 4],
         cleaners: [],
         logo: newPropertyLogo ? URL.createObjectURL(newPropertyLogo) : null,
@@ -72,7 +74,8 @@ export default function Dashboard({ user, onLogout }) {
       };
       setProperties([...properties, newProp]);
       setNewPropertyName('');
-      setNewPropertyTheme('emerald');
+      setNewPropertyTheme('#10b981');
+      setNewPropertySecondary('#059669');
       setNewPropertyLogo(null);
       setNewPropertyBg(null);
       setShowAddProperty(false);
@@ -260,19 +263,25 @@ export default function Dashboard({ user, onLogout }) {
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Theme Color</label>
-            <select 
-              value={newPropertyTheme}
-              onChange={(e) => setNewPropertyTheme(e.target.value)}
-              className="w-full glass-input px-3 py-3 rounded-xl focus:ring-2 focus:ring-emerald-500/50 outline-none font-medium appearance-none"
-            >
-              <option value="emerald">Emerald Green</option>
-              <option value="amber">Amber Gold</option>
-              <option value="blue">Ocean Blue</option>
-              <option value="purple">Royal Purple</option>
-              <option value="rose">Rose Red</option>
-            </select>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Primary Color</label>
+              <input 
+                type="color"
+                value={newPropertyTheme}
+                onChange={(e) => setNewPropertyTheme(e.target.value)}
+                className="w-full h-12 rounded-xl cursor-pointer border-0 p-1 bg-white dark:bg-black/20"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Secondary Color</label>
+              <input 
+                type="color"
+                value={newPropertySecondary}
+                onChange={(e) => setNewPropertySecondary(e.target.value)}
+                className="w-full h-12 rounded-xl cursor-pointer border-0 p-1 bg-white dark:bg-black/20"
+              />
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
@@ -316,7 +325,7 @@ export default function Dashboard({ user, onLogout }) {
           <div 
             key={prop.id}
             onClick={() => setSelectedProperty(prop)}
-            className={`glass-panel rounded-2xl relative overflow-hidden group cursor-pointer hover:border-${prop.theme}-500 transition-all touch-manipulation min-h-[140px] flex flex-col justify-end shadow-md mb-4`}
+            className="glass-panel rounded-2xl relative overflow-hidden group cursor-pointer transition-all touch-manipulation min-h-[140px] flex flex-col justify-end shadow-md mb-4 hover:shadow-lg"
           >
             {/* Background Image Layer */}
             {prop.bgImage && (
@@ -331,7 +340,7 @@ export default function Dashboard({ user, onLogout }) {
             <div className="relative z-20 p-5 w-full flex items-end justify-between">
               <div>
                 <h3 className="font-bold text-2xl text-white drop-shadow-md">{prop.name}</h3>
-                <p className={`text-sm text-${prop.theme}-300 font-medium drop-shadow mt-1`}>
+                <p className="text-sm font-medium drop-shadow mt-1" style={{ color: prop.theme }}>
                   {propRooms.length} {t('dashboard.rooms')} • {pendingCount === 0 ? t('dashboard.all_clean') : `${pendingCount} ${t('dashboard.need_cleaning')}`}
                 </p>
               </div>
@@ -367,7 +376,7 @@ export default function Dashboard({ user, onLogout }) {
         </button>
         
         {/* Dynamic Property Header */}
-        <div className={`relative w-full rounded-3xl overflow-hidden mb-6 shadow-xl shadow-${selectedProperty.theme}-500/10 border border-${selectedProperty.theme}-500/20`}>
+        <div className="relative w-full rounded-3xl overflow-hidden mb-6 shadow-xl border" style={{ borderColor: `${selectedProperty.theme}33`, boxShadow: `0 20px 25px -5px ${selectedProperty.theme}1a` }}>
           <div className="absolute inset-0 bg-gradient-to-r from-black/80 to-transparent z-10"></div>
           {selectedProperty.bgImage && (
             <div 
@@ -440,33 +449,21 @@ export default function Dashboard({ user, onLogout }) {
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Primary Color</label>
-                    <select 
+                    <input 
+                      type="color"
                       value={propSettingsData.theme}
                       onChange={(e) => setPropSettingsData({...propSettingsData, theme: e.target.value})}
-                      className="w-full glass-input px-3 py-3 rounded-xl outline-none font-medium appearance-none"
-                    >
-                      <option value="emerald">Emerald</option>
-                      <option value="amber">Amber</option>
-                      <option value="blue">Blue</option>
-                      <option value="purple">Purple</option>
-                      <option value="rose">Rose</option>
-                    </select>
+                      className="w-full h-12 rounded-xl cursor-pointer border-0 p-1 bg-white dark:bg-black/20"
+                    />
                   </div>
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Secondary Color</label>
-                    <select 
+                    <input 
+                      type="color"
                       value={propSettingsData.secondaryTheme}
                       onChange={(e) => setPropSettingsData({...propSettingsData, secondaryTheme: e.target.value})}
-                      className="w-full glass-input px-3 py-3 rounded-xl outline-none font-medium appearance-none"
-                    >
-                      <option value="emerald">Emerald</option>
-                      <option value="amber">Amber</option>
-                      <option value="blue">Blue</option>
-                      <option value="purple">Purple</option>
-                      <option value="rose">Rose</option>
-                      <option value="teal">Teal</option>
-                      <option value="orange">Orange</option>
-                    </select>
+                      className="w-full h-12 rounded-xl cursor-pointer border-0 p-1 bg-white dark:bg-black/20"
+                    />
                   </div>
                 </div>
 
@@ -588,7 +585,8 @@ export default function Dashboard({ user, onLogout }) {
           {user.role !== 'cleaner' && (
             <button 
               onClick={() => setShowAddRoom(true)}
-              className={`bg-${selectedProperty.theme}-500 hover:bg-${selectedProperty.theme}-600 text-white px-3 py-1.5 rounded-lg text-sm font-semibold shadow-sm touch-manipulation`}
+              className="text-white px-3 py-1.5 rounded-lg text-sm font-semibold shadow-sm touch-manipulation"
+              style={{ backgroundColor: selectedProperty.theme }}
             >
               + Add Room
             </button>
@@ -735,60 +733,137 @@ export default function Dashboard({ user, onLogout }) {
     );
   };
 
-  const renderUnifiedRooms = () => (
-    <div className="space-y-4">
-      <h2 className="text-xl font-bold mb-4">Unified Rooms View</h2>
-      {rooms.map(room => {
-        const prop = properties.find(p => p.id === room.propertyId);
-        if (!prop) return null;
+  const renderLogsView = () => {
+    // Collect all logs
+    const allLogs = [];
+    rooms.forEach(r => {
+      if (r.logs) {
+        const prop = properties.find(p => p.id === r.propertyId);
+        r.logs.forEach(l => {
+          allLogs.push({ ...l, roomName: r.name, propName: prop ? prop.name : 'Unknown' });
+        });
+      }
+    });
+    // Sort descending by date and time
+    allLogs.sort((a, b) => new Date(`${b.date}T${b.time}`) - new Date(`${a.date}T${a.time}`));
+    
+    // Filter
+    const filteredLogs = allLogs.filter(l => 
+      l.user.toLowerCase().includes(logFilter.toLowerCase()) || 
+      l.roomName.toLowerCase().includes(logFilter.toLowerCase()) ||
+      l.propName.toLowerCase().includes(logFilter.toLowerCase())
+    );
+
+    return (
+      <div className="space-y-4">
+        <h2 className="text-xl font-bold mb-4">Cleaning Logs</h2>
+        <input 
+          type="text" 
+          placeholder="Filter by property, room, or cleaner..."
+          value={logFilter}
+          onChange={(e) => setLogFilter(e.target.value)}
+          className="w-full glass-input px-4 py-3 rounded-xl mb-4 focus:ring-2 focus:ring-emerald-500/50 outline-none font-medium"
+        />
         
-        return (
-          <div 
-            key={room.id} 
-            onClick={() => setSelectedRoom(room)}
-            className={`glass-panel border-l-4 ${room.status === 'overdue' ? 'border-l-red-500 bg-red-500/5' : room.status === 'pending' ? 'border-l-orange-500 bg-orange-500/5' : 'border-l-emerald-500 opacity-70'} p-5 rounded-xl flex justify-between items-center touch-manipulation cursor-pointer mb-3 hover:shadow-md transition-shadow`}
-          >
-            <div className="w-full pr-4">
-              <p className="text-xs text-gray-500 mb-1">{prop.name}</p>
-              <h3 className={`font-bold text-lg ${room.status === 'clean' ? 'text-gray-600 dark:text-gray-300' : ''}`}>{room.name}</h3>
-              
-              <div className="flex justify-between items-center mt-1">
-                <span className={`text-sm font-semibold ${
-                  room.status === 'overdue' ? 'text-red-600 dark:text-red-400' : 
-                  room.status === 'pending' ? 'text-orange-600 dark:text-orange-400' : 
-                  'text-emerald-600 dark:text-emerald-400'
-                }`}>
-                  {room.status === 'overdue' ? 'Overdue!' : room.status === 'pending' ? 'Pending' : `Cleaned by ${room.cleanedBy || 'System'}`}
-                </span>
-                <span 
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    if (user.role !== 'cleaner') {
-                      setScheduleData({ roomId: room.id, date: room.date || new Date().toISOString().split('T')[0], time: room.deadline || '12:00' });
-                      setShowEditSchedule(true);
-                    }
-                  }}
-                  className={`text-xs font-bold px-2 py-1 rounded-md transition-colors ${user.role !== 'cleaner' ? 'cursor-pointer hover:bg-emerald-100 dark:hover:bg-emerald-900/50 bg-white/50 dark:bg-black/30 text-gray-500 dark:text-gray-400' : 'text-gray-500 dark:text-gray-400 bg-white/50 dark:bg-black/30'}`}
-                >
-                  Next: {room.date} {room.deadline}
-                </span>
+        <div className="space-y-3">
+          {filteredLogs.map((log, i) => (
+            <div key={i} className="glass-panel p-4 rounded-xl flex flex-col opacity-90 border-l-4 border-l-emerald-500">
+              <div className="flex justify-between items-start mb-2">
+                <div>
+                  <h3 className="font-bold text-gray-800 dark:text-gray-200">{log.roomName}</h3>
+                  <p className="text-xs text-gray-500">{log.propName}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm font-bold text-emerald-600 dark:text-emerald-400">{log.date}</p>
+                  <p className="text-xs text-gray-500">{log.time}</p>
+                </div>
+              </div>
+              <div className="flex items-center text-sm font-medium mt-2 pt-2 border-t border-gray-100 dark:border-gray-800">
+                <div className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-xs font-bold mr-2">
+                  {log.user.charAt(0)}
+                </div>
+                <span>Cleaned by {log.user}</span>
               </div>
             </div>
-            
-            <div className="text-gray-400 flex-shrink-0">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
+          ))}
+          {filteredLogs.length === 0 && (
+            <p className="text-gray-500 text-center py-6">No logs found.</p>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  const renderUnifiedRooms = () => {
+    // Group rooms by property
+    const groupedRooms = {};
+    properties.forEach(p => groupedRooms[p.id] = { property: p, rooms: [] });
+    rooms.forEach(r => {
+      if (groupedRooms[r.propertyId]) {
+        groupedRooms[r.propertyId].rooms.push(r);
+      }
+    });
+
+    return (
+      <div className="space-y-6">
+        <h2 className="text-xl font-bold mb-2">All Rooms by Property</h2>
+        
+        {Object.values(groupedRooms).filter(group => group.rooms.length > 0).map(group => (
+          <div key={group.property.id} className="mb-6">
+            <h3 className="text-lg font-bold text-gray-800 dark:text-gray-200 mb-3 px-2 flex items-center gap-2">
+              <span className="w-3 h-3 rounded-full" style={{ backgroundColor: group.property.theme }}></span>
+              {group.property.name}
+            </h3>
+            <div className="space-y-3">
+              {group.rooms.map(room => (
+                <div 
+                  key={room.id} 
+                  onClick={() => setSelectedRoom(room)}
+                  className={`glass-panel border-l-4 ${room.status === 'overdue' ? 'border-l-red-500 bg-red-500/5' : room.status === 'pending' ? 'border-l-orange-500 bg-orange-500/5' : 'border-l-emerald-500 opacity-70'} p-5 rounded-xl flex justify-between items-center touch-manipulation cursor-pointer hover:shadow-md transition-shadow`}
+                >
+                  <div className="w-full pr-4">
+                    <h4 className={`font-bold text-lg ${room.status === 'clean' ? 'text-gray-600 dark:text-gray-300' : ''}`}>{room.name}</h4>
+                    
+                    <div className="flex justify-between items-center mt-1">
+                      <span className={`text-sm font-semibold ${
+                        room.status === 'overdue' ? 'text-red-600 dark:text-red-400' : 
+                        room.status === 'pending' ? 'text-orange-600 dark:text-orange-400' : 
+                        'text-emerald-600 dark:text-emerald-400'
+                      }`}>
+                        {room.status === 'overdue' ? 'Overdue!' : room.status === 'pending' ? 'Pending' : `Cleaned by ${room.cleanedBy || 'System'}`}
+                      </span>
+                      <span 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (user.role !== 'cleaner') {
+                            setScheduleData({ roomId: room.id, date: room.date || new Date().toISOString().split('T')[0], time: room.deadline || '12:00' });
+                            setShowEditSchedule(true);
+                          }
+                        }}
+                        className={`text-xs font-bold px-2 py-1 rounded-md transition-colors ${user.role !== 'cleaner' ? 'cursor-pointer hover:bg-emerald-100 dark:hover:bg-emerald-900/50 bg-white/50 dark:bg-black/30 text-gray-500 dark:text-gray-400' : 'text-gray-500 dark:text-gray-400 bg-white/50 dark:bg-black/30'}`}
+                      >
+                        Next: {room.date} {room.deadline}
+                      </span>
+                    </div>
+                  </div>
+                  
+                  <div className="text-gray-400 flex-shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
-        );
-      })}
-      
-      {rooms.length === 0 && (
-        <p className="text-gray-500 text-center py-6">No rooms to display.</p>
-      )}
-    </div>
-  );
+        ))}
+        
+        {rooms.length === 0 && (
+          <p className="text-gray-500 text-center py-6">No rooms to display.</p>
+        )}
+      </div>
+    );
+  };
 
   const handleCloneRoom = () => {
     if (selectedRoom) {
@@ -845,7 +920,7 @@ export default function Dashboard({ user, onLogout }) {
           
           <div className="flex justify-between items-start">
             <div className="flex-1">
-              <p className={`text-sm text-${prop?.theme}-600 dark:text-${prop?.theme}-400 font-semibold mb-1`}>{prop?.name}</p>
+              <p className="text-sm font-semibold mb-1" style={{ color: prop?.theme }}>{prop?.name}</p>
               
               {isRenaming ? (
                 <form onSubmit={handleRenameSubmit} className="flex items-center gap-2 mb-2">
@@ -959,7 +1034,8 @@ export default function Dashboard({ user, onLogout }) {
           {user.role !== 'cleaner' && (
             <button 
               onClick={() => setShowAddChecklist(true)}
-              className={`text-${prop?.theme}-600 dark:text-${prop?.theme}-400 text-sm font-semibold hover:underline touch-manipulation p-2`}
+              className="text-sm font-semibold hover:underline touch-manipulation p-2"
+              style={{ color: prop?.theme }}
             >
               + Add Item
             </button>
@@ -1073,7 +1149,7 @@ export default function Dashboard({ user, onLogout }) {
       {/* Top Header */}
       <header className="glass-panel sticky top-0 z-40 rounded-none border-x-0 border-t-0 shadow-sm px-4 py-3 flex justify-between items-center bg-white/80 dark:bg-[#1a1a1a]/80 min-h-[64px]">
         <div className="flex items-center gap-3">
-          <div className={`w-10 h-10 ${selectedProperty?.theme === 'amber' ? 'bg-gradient-to-tr from-amber-400 to-amber-600' : 'bg-gradient-to-tr from-emerald-400 to-emerald-600'} rounded-xl shadow-lg flex items-center justify-center`}>
+          <div className="w-10 h-10 rounded-xl shadow-lg flex items-center justify-center" style={{ background: selectedProperty ? `linear-gradient(to top right, ${selectedProperty.theme}, ${selectedProperty.secondaryTheme})` : `linear-gradient(to top right, #10b981, #059669)` }}>
             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
             </svg>
@@ -1098,6 +1174,7 @@ export default function Dashboard({ user, onLogout }) {
           <>
             {activeTab === 'properties' && (selectedProperty ? renderPropertyOverview() : renderPropertySelection())}
             {activeTab === 'rooms' && renderUnifiedRooms()}
+            {activeTab === 'logs' && renderLogsView()}
             
             {activeTab === 'settings' && (
               <div className="space-y-4">
@@ -1156,6 +1233,15 @@ export default function Dashboard({ user, onLogout }) {
               </svg>
             </div>
             <span className={`text-[11px] font-medium ${activeTab === 'rooms' ? 'mt-1' : ''}`}>{t('dashboard.rooms')}</span>
+          </button>
+          <button 
+            onClick={() => setActiveTab('logs')} 
+            className={`flex flex-col items-center p-3 transition-colors touch-manipulation w-20 ${activeTab === 'logs' ? 'text-emerald-500' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'}`}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7 mb-1" fill={activeTab === 'logs' ? "currentColor" : "none"} viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            <span className="text-[11px] font-medium">Logs</span>
           </button>
           <button 
             onClick={() => setActiveTab('settings')} 
