@@ -643,7 +643,7 @@ export default function Dashboard({ user, onLogout }) {
               + Add Item
             </button>
           )}
-        </div></div>
+        </div>
 
         {showAddChecklist && (
           <form onSubmit={handleAddChecklist} className="glass-panel p-4 rounded-xl mb-4 flex gap-2">
