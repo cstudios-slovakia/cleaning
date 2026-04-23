@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
 export default function Dashboard({ user, onLogout }) {
@@ -15,15 +15,32 @@ export default function Dashboard({ user, onLogout }) {
     { id: 4, name: 'Erik', role: 'manager' }
   ]);
 
-  const [properties, setProperties] = useState([
-    { id: 1, name: 'Central Apartment', theme: '#10b981', secondaryTheme: '#059669', managers: [3, 4], cleaners: [1, 2], logo: null, bgImage: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&q=80&w=800' },
-    { id: 2, name: 'Sunrise Villa', theme: '#f59e0b', secondaryTheme: '#d97706', managers: [4], cleaners: [1], logo: null, bgImage: 'https://images.unsplash.com/photo-1493809842364-78817add7ffb?auto=format&fit=crop&q=80&w=800' }
-  ]);
-  const [rooms, setRooms] = useState([
-    { id: 1, propertyId: 1, name: 'Room 201 - Master Bedroom', status: 'overdue', deadline: '10:00', date: new Date().toISOString().split('T')[0], logs: [], checklist: [{id: 1, text: 'Change sheets', done: false}, {id: 2, text: 'Clean bathroom', done: false}, {id: 3, text: 'Empty trash', done: false}] },
-    { id: 2, propertyId: 2, name: 'Room 105 - Bathroom', status: 'pending', deadline: '14:00', date: new Date().toISOString().split('T')[0], logs: [], checklist: [{id: 1, text: 'Scrub toilet', done: false}, {id: 2, text: 'Clean mirror', done: false}, {id: 3, text: 'Mop floor', done: false}] },
-    { id: 3, propertyId: 2, name: 'Room 302 - Living Area', status: 'clean', cleanedBy: 'Anna', deadline: '12:00', date: new Date().toISOString().split('T')[0], logs: [{date: new Date().toISOString().split('T')[0], time: '11:45', user: 'Anna'}], checklist: [{id: 1, text: 'Vacuum carpet', done: true}, {id: 2, text: 'Dust shelves', done: true}] }
-  ]);
+  const [properties, setProperties] = useState(() => {
+    const saved = localStorage.getItem('emerald_properties');
+    if (saved) return JSON.parse(saved);
+    return [
+      { id: 1, name: 'Central Apartment', theme: '#10b981', secondaryTheme: '#059669', managers: [3, 4], cleaners: [1, 2], logo: null, bgImage: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&q=80&w=800' },
+      { id: 2, name: 'Sunrise Villa', theme: '#f59e0b', secondaryTheme: '#d97706', managers: [4], cleaners: [1], logo: null, bgImage: 'https://images.unsplash.com/photo-1493809842364-78817add7ffb?auto=format&fit=crop&q=80&w=800' }
+    ];
+  });
+
+  const [rooms, setRooms] = useState(() => {
+    const saved = localStorage.getItem('emerald_rooms');
+    if (saved) return JSON.parse(saved);
+    return [
+      { id: 1, propertyId: 1, name: 'Room 201 - Master Bedroom', status: 'overdue', deadline: '10:00', date: new Date().toISOString().split('T')[0], logs: [], checklist: [{id: 1, text: 'Change sheets', done: false}, {id: 2, text: 'Clean bathroom', done: false}, {id: 3, text: 'Empty trash', done: false}] },
+      { id: 2, propertyId: 2, name: 'Room 105 - Bathroom', status: 'pending', deadline: '14:00', date: new Date().toISOString().split('T')[0], logs: [], checklist: [{id: 1, text: 'Scrub toilet', done: false}, {id: 2, text: 'Clean mirror', done: false}, {id: 3, text: 'Mop floor', done: false}] },
+      { id: 3, propertyId: 2, name: 'Room 302 - Living Area', status: 'clean', cleanedBy: 'Anna', deadline: '12:00', date: new Date().toISOString().split('T')[0], logs: [{date: new Date().toISOString().split('T')[0], time: '11:45', user: 'Anna'}], checklist: [{id: 1, text: 'Vacuum carpet', done: true}, {id: 2, text: 'Dust shelves', done: true}] }
+    ];
+  });
+
+  useEffect(() => {
+    localStorage.setItem('emerald_properties', JSON.stringify(properties));
+  }, [properties]);
+
+  useEffect(() => {
+    localStorage.setItem('emerald_rooms', JSON.stringify(rooms));
+  }, [rooms]);
 
   // Form states
   const [showAddProperty, setShowAddProperty] = useState(false);
