@@ -1,0 +1,31 @@
+{
+  "login": {
+    "title": "Emerald Reinigung",
+    "subtitle": "Melden Sie sich an",
+    "cleaner_tab": "Reinigungskraft",
+    "manager_tab": "Manager",
+    "username": "Benutzername",
+    "password": "Passwort",
+    "pin": "PIN-Code",
+    "submit": "Anmelden",
+    "loading": "Anmelden...",
+    "error": "Ungültige Anmeldedaten",
+    "created_by": "Erstellt von Cstudios"
+  },
+  "dashboard": {
+    "hello": "Hallo, {{name}}",
+    "properties": "Immobilien",
+    "rooms": "Zimmer",
+    "settings": "Einstellungen",
+    "your_properties": "Ihre Immobilien",
+    "rooms_to_clean": "Zimmer zu reinigen",
+    "need_cleaning": "müssen gereinigt werden",
+    "all_clean": "Alles sauber",
+    "overdue": "Überfällig (Frist: {{time}})",
+    "pending": "Ausstehend (Frist: {{time}})",
+    "cleaned_today": "Heute gereinigt von {{name}}",
+    "language": "Sprache",
+    "change_pin": "PIN/Passwort ändern",
+    "manage_cleaners": "Reinigungskräfte verwalten"
+  }
+}

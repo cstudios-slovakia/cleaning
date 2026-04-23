@@ -1,0 +1,31 @@
+{
+  "login": {
+    "title": "Emerald Upratovanie",
+    "subtitle": "Prihláste sa do svojho účtu",
+    "cleaner_tab": "Upratovačka",
+    "manager_tab": "Manažér",
+    "username": "Používateľské meno",
+    "password": "Heslo",
+    "pin": "PIN kód",
+    "submit": "Prihlásiť sa",
+    "loading": "Prihlasovanie...",
+    "error": "Neplatné údaje",
+    "created_by": "Vytvorilo Cstudios"
+  },
+  "dashboard": {
+    "hello": "Ahoj, {{name}}",
+    "properties": "Nehnuteľnosti",
+    "rooms": "Izby",
+    "settings": "Nastavenia",
+    "your_properties": "Vaše nehnuteľnosti",
+    "rooms_to_clean": "Izby na upratovanie",
+    "need_cleaning": "potrebuje upratať",
+    "all_clean": "Všetky čisté",
+    "overdue": "Po termíne (Termín: {{time}})",
+    "pending": "Čakajúce (Termín: {{time}})",
+    "cleaned_today": "Upratané dnes ({{name}})",
+    "language": "Jazyk",
+    "change_pin": "Zmeniť PIN/Heslo",
+    "manage_cleaners": "Správa upratovačiek"
+  }
+}

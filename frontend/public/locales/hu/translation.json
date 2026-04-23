@@ -1,0 +1,31 @@
+{
+  "login": {
+    "title": "Emerald Takarítás",
+    "subtitle": "Jelentkezz be a fiókodba",
+    "cleaner_tab": "Takarító",
+    "manager_tab": "Menedzser",
+    "username": "Felhasználónév",
+    "password": "Jelszó",
+    "pin": "PIN Kód",
+    "submit": "Bejelentkezés",
+    "loading": "Bejelentkezés...",
+    "error": "Érvénytelen adatok",
+    "created_by": "Készítette a Cstudios"
+  },
+  "dashboard": {
+    "hello": "Szia, {{name}}",
+    "properties": "Ingatlanok",
+    "rooms": "Szobák",
+    "settings": "Beállítások",
+    "your_properties": "Saját Ingatlanok",
+    "rooms_to_clean": "Takarítandó Szobák",
+    "need_cleaning": "takarításra vár",
+    "all_clean": "Mind tiszta",
+    "overdue": "Késésben (Határidő: {{time}})",
+    "pending": "Függőben (Határidő: {{time}})",
+    "cleaned_today": "Ma kitakarítva ({{name}})",
+    "language": "Nyelv",
+    "change_pin": "PIN/Jelszó módosítása",
+    "manage_cleaners": "Takarítók kezelése"
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "login": {
+    "title": "Emerald Прибирання",
+    "subtitle": "Увійдіть до свого акаунта",
+    "cleaner_tab": "Прибиральник",
+    "manager_tab": "Менеджер",
+    "username": "Ім'я користувача",
+    "password": "Пароль",
+    "pin": "PIN-код",
+    "submit": "Увійти",
+    "loading": "Вхід...",
+    "error": "Неправильні дані",
+    "created_by": "Створено Cstudios"
+  },
+  "dashboard": {
+    "hello": "Привіт, {{name}}",
+    "properties": "Власність",
+    "rooms": "Кімнати",
+    "settings": "Налаштування",
+    "your_properties": "Ваша власність",
+    "rooms_to_clean": "Кімнати для прибирання",
+    "need_cleaning": "потребують прибирання",
+    "all_clean": "Все чисто",
+    "overdue": "Прострочено (Дедлайн: {{time}})",
+    "pending": "Очікується (Дедлайн: {{time}})",
+    "cleaned_today": "Сьогодні прибрано ({{name}})",
+    "language": "Мова",
+    "change_pin": "Змінити PIN/Пароль",
+    "manage_cleaners": "Керувати прибиральниками"
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "login": {
+    "title": "Emerald Cleaning",
+    "subtitle": "Sign in to your account",
+    "cleaner_tab": "Cleaner",
+    "manager_tab": "Manager",
+    "username": "Username",
+    "password": "Password",
+    "pin": "PIN Code",
+    "submit": "Sign In",
+    "loading": "Signing in...",
+    "error": "Invalid credentials",
+    "created_by": "Created by Cstudios"
+  },
+  "dashboard": {
+    "hello": "Hello, {{name}}",
+    "properties": "Properties",
+    "rooms": "Rooms",
+    "settings": "Settings",
+    "your_properties": "Your Properties",
+    "rooms_to_clean": "Rooms to Clean",
+    "need_cleaning": "need cleaning",
+    "all_clean": "All Clean",
+    "overdue": "Overdue (Deadline: {{time}})",
+    "pending": "Pending (Deadline: {{time}})",
+    "cleaned_today": "Cleaned today by {{name}}",
+    "language": "Language",
+    "change_pin": "Change PIN/Password",
+    "manage_cleaners": "Manage Cleaners"
+  }
+}
