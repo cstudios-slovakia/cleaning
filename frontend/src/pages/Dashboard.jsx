@@ -13,9 +13,9 @@ export default function Dashboard({ user, onLogout }) {
     { id: 2, name: 'Sunrise Villa', theme: 'amber', logo: null, bgImage: 'https://images.unsplash.com/photo-1493809842364-78817add7ffb?auto=format&fit=crop&q=80&w=800' }
   ]);
   const [rooms, setRooms] = useState([
-    { id: 1, propertyId: 1, name: 'Room 201 - Master Bedroom', status: 'overdue', deadline: '10:00', checklist: [{id: 1, text: 'Change sheets', done: false}, {id: 2, text: 'Clean bathroom', done: false}, {id: 3, text: 'Empty trash', done: false}] },
-    { id: 2, propertyId: 2, name: 'Room 105 - Bathroom', status: 'pending', deadline: '14:00', checklist: [{id: 1, text: 'Scrub toilet', done: false}, {id: 2, text: 'Clean mirror', done: false}, {id: 3, text: 'Mop floor', done: false}] },
-    { id: 3, propertyId: 2, name: 'Room 302 - Living Area', status: 'clean', cleanedBy: 'Anna', checklist: [{id: 1, text: 'Vacuum carpet', done: true}, {id: 2, text: 'Dust shelves', done: true}] }
+    { id: 1, propertyId: 1, name: 'Room 201 - Master Bedroom', status: 'overdue', deadline: '10:00', date: new Date().toISOString().split('T')[0], checklist: [{id: 1, text: 'Change sheets', done: false}, {id: 2, text: 'Clean bathroom', done: false}, {id: 3, text: 'Empty trash', done: false}] },
+    { id: 2, propertyId: 2, name: 'Room 105 - Bathroom', status: 'pending', deadline: '14:00', date: new Date().toISOString().split('T')[0], checklist: [{id: 1, text: 'Scrub toilet', done: false}, {id: 2, text: 'Clean mirror', done: false}, {id: 3, text: 'Mop floor', done: false}] },
+    { id: 3, propertyId: 2, name: 'Room 302 - Living Area', status: 'clean', cleanedBy: 'Anna', deadline: '12:00', date: new Date().toISOString().split('T')[0], checklist: [{id: 1, text: 'Vacuum carpet', done: true}, {id: 2, text: 'Dust shelves', done: true}] }
   ]);
 
   // Form states
@@ -33,6 +33,12 @@ export default function Dashboard({ user, onLogout }) {
 
   const [showAddChecklist, setShowAddChecklist] = useState(false);
   const [newChecklistText, setNewChecklistText] = useState('');
+  
+  const [showExpressClean, setShowExpressClean] = useState(false);
+  const [expressData, setExpressData] = useState({ roomId: '', date: new Date().toISOString().split('T')[0], time: '12:00' });
+  
+  const [showEditSchedule, setShowEditSchedule] = useState(false);
+  const [scheduleData, setScheduleData] = useState({ date: '', time: '' });
 
   const changeLanguage = (e) => {
     i18n.changeLanguage(e.target.value);
@@ -65,6 +71,7 @@ export default function Dashboard({ user, onLogout }) {
         propertyId: selectedProperty.id,
         name: newRoomName,
         status: 'pending',
+        date: new Date().toISOString().split('T')[0],
         deadline: '12:00',
         checklist: [
           {id: 1, text: 'Empty trash', done: false},
@@ -75,6 +82,71 @@ export default function Dashboard({ user, onLogout }) {
       setRooms([...rooms, newRoom]);
       setNewRoomName('');
       setShowAddRoom(false);
+    }
+  };
+
+  const handleExpressCleanSubmit = (e) => {
+    e.preventDefault();
+    if (expressData.roomId) {
+      setRooms(rooms.map(r => {
+        if (r.id === parseInt(expressData.roomId)) {
+          return {
+            ...r,
+            status: 'pending',
+            date: expressData.date,
+            deadline: expressData.time,
+            cleanedBy: null,
+            checklist: r.checklist.map(t => ({...t, done: false})) // reset checklist
+          };
+        }
+        return r;
+      }));
+      setShowExpressClean(false);
+      setExpressData({ roomId: '', date: new Date().toISOString().split('T')[0], time: '12:00' });
+    }
+  };
+
+  const handleUpdateSchedule = (e) => {
+    e.preventDefault();
+    if (selectedRoom) {
+      const updatedRooms = rooms.map(r => {
+        if (r.id === selectedRoom.id) {
+          return {
+            ...r,
+            date: scheduleData.date,
+            deadline: scheduleData.time,
+            status: 'pending',
+            cleanedBy: null,
+            checklist: r.checklist.map(t => ({...t, done: false})) // reset checklist for new cleaning
+          };
+        }
+        return r;
+      });
+      setRooms(updatedRooms);
+      setSelectedRoom(updatedRooms.find(r => r.id === selectedRoom.id));
+      setShowEditSchedule(false);
+    }
+  };
+
+  const handleImmediateExpressClean = () => {
+    if (selectedRoom) {
+      const now = new Date();
+      const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+      const updatedRooms = rooms.map(r => {
+        if (r.id === selectedRoom.id) {
+          return {
+            ...r,
+            status: 'overdue', // Flag it immediately
+            date: now.toISOString().split('T')[0],
+            deadline: timeStr,
+            cleanedBy: null,
+            checklist: r.checklist.map(t => ({...t, done: false}))
+          };
+        }
+        return r;
+      });
+      setRooms(updatedRooms);
+      setSelectedRoom(updatedRooms.find(r => r.id === selectedRoom.id));
     }
   };
 
@@ -207,7 +279,7 @@ export default function Dashboard({ user, onLogout }) {
           <div 
             key={prop.id}
             onClick={() => setSelectedProperty(prop)}
-            className={`glass-panel rounded-2xl relative overflow-hidden group cursor-pointer hover:border-${prop.theme}-500 transition-all touch-manipulation min-h-[140px] flex flex-col justify-end shadow-md`}
+            className={`glass-panel rounded-2xl relative overflow-hidden group cursor-pointer hover:border-${prop.theme}-500 transition-all touch-manipulation min-h-[140px] flex flex-col justify-end shadow-md mb-4`}
           >
             {/* Background Image Layer */}
             {prop.bgImage && (
@@ -311,6 +383,63 @@ export default function Dashboard({ user, onLogout }) {
             <button type="button" onClick={() => setShowAddRoom(false)} className="text-gray-500 px-2">Cancel</button>
           </form>
         )}
+
+        {/* Express Clean Modal */}
+        {showExpressClean && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm touch-manipulation">
+            <form onSubmit={handleExpressCleanSubmit} className="glass-panel w-full max-w-sm p-6 rounded-3xl shadow-2xl relative">
+              <button 
+                type="button" 
+                onClick={() => setShowExpressClean(false)}
+                className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+              <h2 className="text-xl font-bold mb-4">Express Clean</h2>
+              <p className="text-sm text-gray-500 mb-4">Schedule a quick cleaning for a room.</p>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Select Room</label>
+                  <select 
+                    value={expressData.roomId}
+                    onChange={e => setExpressData({...expressData, roomId: e.target.value})}
+                    className="w-full glass-input px-3 py-3 rounded-xl focus:ring-2 focus:ring-emerald-500/50 outline-none font-medium appearance-none"
+                    required
+                  >
+                    <option value="" disabled>Choose a room...</option>
+                    {propRooms.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
+                  </select>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Date</label>
+                    <input 
+                      type="date"
+                      value={expressData.date}
+                      onChange={e => setExpressData({...expressData, date: e.target.value})}
+                      className="w-full glass-input px-3 py-3 rounded-xl focus:ring-2 focus:ring-emerald-500/50 outline-none font-medium"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Time</label>
+                    <input 
+                      type="time"
+                      value={expressData.time}
+                      onChange={e => setExpressData({...expressData, time: e.target.value})}
+                      className="w-full glass-input px-3 py-3 rounded-xl focus:ring-2 focus:ring-emerald-500/50 outline-none font-medium"
+                      required
+                    />
+                  </div>
+                </div>
+                <button type="submit" className="w-full glass-button py-3 mt-2 rounded-xl font-bold shadow-lg">Schedule Cleaning</button>
+              </div>
+            </form>
+          </div>
+        )}
         
         {/* Rooms List */}
         {propRooms.map(room => (
@@ -321,8 +450,8 @@ export default function Dashboard({ user, onLogout }) {
           >
             <div>
               <h3 className={`font-bold text-lg ${room.status === 'clean' ? 'text-gray-600 dark:text-gray-300' : ''}`}>{room.name}</h3>
-              {room.status === 'overdue' && <p className="text-sm text-red-600 dark:text-red-400 font-semibold mt-1">{t('dashboard.overdue', { time: room.deadline })}</p>}
-              {room.status === 'pending' && <p className="text-sm text-orange-600 dark:text-orange-400 font-semibold mt-1">{t('dashboard.pending', { time: room.deadline })}</p>}
+              {room.status === 'overdue' && <p className="text-sm text-red-600 dark:text-red-400 font-semibold mt-1">{t('dashboard.overdue', { time: `${room.date} ${room.deadline}` })}</p>}
+              {room.status === 'pending' && <p className="text-sm text-orange-600 dark:text-orange-400 font-semibold mt-1">{t('dashboard.pending', { time: `${room.date} ${room.deadline}` })}</p>}
               {room.status === 'clean' && <p className="text-sm text-emerald-600 dark:text-emerald-400 mt-1">{t('dashboard.cleaned_today', { name: room.cleanedBy || 'System' })}</p>}
               
               <div className="flex gap-1 mt-2">
@@ -345,7 +474,10 @@ export default function Dashboard({ user, onLogout }) {
         )}
         
         <div className="flex gap-2 mt-6">
-          <button className="flex-1 glass-button py-3 rounded-xl shadow-sm text-sm font-bold flex justify-center items-center touch-manipulation">
+          <button 
+            onClick={() => setShowExpressClean(true)}
+            className="flex-1 glass-button py-3 rounded-xl shadow-sm text-sm font-bold flex justify-center items-center touch-manipulation"
+          >
             Express Clean
           </button>
           {user.role !== 'cleaner' && (
@@ -374,8 +506,8 @@ export default function Dashboard({ user, onLogout }) {
             <div>
               <p className="text-xs text-gray-500 mb-1">{prop.name}</p>
               <h3 className={`font-bold text-lg ${room.status === 'clean' ? 'text-gray-600 dark:text-gray-300' : ''}`}>{room.name}</h3>
-              {room.status === 'overdue' && <p className="text-sm text-red-600 dark:text-red-400 font-semibold mt-1">{t('dashboard.overdue', { time: room.deadline })}</p>}
-              {room.status === 'pending' && <p className="text-sm text-orange-600 dark:text-orange-400 font-semibold mt-1">{t('dashboard.pending', { time: room.deadline })}</p>}
+              {room.status === 'overdue' && <p className="text-sm text-red-600 dark:text-red-400 font-semibold mt-1">{t('dashboard.overdue', { time: `${room.date} ${room.deadline}` })}</p>}
+              {room.status === 'pending' && <p className="text-sm text-orange-600 dark:text-orange-400 font-semibold mt-1">{t('dashboard.pending', { time: `${room.date} ${room.deadline}` })}</p>}
               {room.status === 'clean' && <p className="text-sm text-emerald-600 dark:text-emerald-400 mt-1">{t('dashboard.cleaned_today', { name: room.cleanedBy || 'System' })}</p>}
             </div>
             
@@ -401,7 +533,7 @@ export default function Dashboard({ user, onLogout }) {
     return (
       <div className="space-y-4">
         <button 
-          onClick={() => setSelectedRoom(null)}
+          onClick={() => { setSelectedRoom(null); setShowEditSchedule(false); }}
           className="text-sm text-gray-500 mb-2 flex items-center hover:text-gray-800 dark:hover:text-gray-200 p-2 -ml-2 touch-manipulation"
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
@@ -410,32 +542,108 @@ export default function Dashboard({ user, onLogout }) {
           Back
         </button>
         
-        <div className="glass-panel p-6 rounded-2xl bg-gradient-to-br from-white/60 to-white/30 dark:from-gray-800/60 dark:to-gray-900/30">
-          <p className="text-sm text-emerald-600 dark:text-emerald-400 font-semibold mb-1">{prop?.name}</p>
-          <h2 className="text-2xl font-bold">{selectedRoom.name}</h2>
-          {selectedRoom.status === 'clean' ? (
-             <div className="mt-3 inline-flex items-center bg-emerald-100 text-emerald-800 dark:bg-emerald-900/50 dark:text-emerald-300 text-xs font-bold px-2 py-1 rounded-full">
-               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                 <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-               </svg>
-               Cleaned
+        <div className="glass-panel p-6 rounded-2xl bg-gradient-to-br from-white/60 to-white/30 dark:from-gray-800/60 dark:to-gray-900/30 relative overflow-hidden">
+          {/* Quick Express Status Badge */}
+          {selectedRoom.status === 'overdue' && (
+             <div className="absolute top-0 right-0 bg-red-500 text-white text-[10px] font-bold px-3 py-1 rounded-bl-xl shadow-sm">
+               NEEDS IMMEDIATE CLEANING
              </div>
-          ) : (
-             <p className="text-sm text-gray-500 mt-1">Deadline: {selectedRoom.deadline}</p>
+          )}
+          
+          <div className="flex justify-between items-start">
+            <div>
+              <p className={`text-sm text-${prop?.theme}-600 dark:text-${prop?.theme}-400 font-semibold mb-1`}>{prop?.name}</p>
+              <h2 className="text-2xl font-bold">{selectedRoom.name}</h2>
+              {selectedRoom.status === 'clean' ? (
+                 <div className="mt-3 inline-flex items-center bg-emerald-100 text-emerald-800 dark:bg-emerald-900/50 dark:text-emerald-300 text-xs font-bold px-2 py-1 rounded-full">
+                   <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                     <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                   </svg>
+                   Cleaned by {selectedRoom.cleanedBy}
+                 </div>
+              ) : (
+                 <p className="text-sm text-gray-500 mt-1 flex items-center">
+                   <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                   </svg>
+                   Deadline: {selectedRoom.date} {selectedRoom.deadline}
+                 </p>
+              )}
+            </div>
+            
+            {user.role !== 'cleaner' && (
+              <button 
+                onClick={() => {
+                  setScheduleData({ date: selectedRoom.date || new Date().toISOString().split('T')[0], time: selectedRoom.deadline || '12:00' });
+                  setShowEditSchedule(!showEditSchedule);
+                }}
+                className="bg-white/50 dark:bg-black/30 p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-white/80 transition-colors touch-manipulation"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
+                </svg>
+              </button>
+            )}
+          </div>
+          
+          {user.role !== 'cleaner' && (
+            <div className="mt-4 flex gap-2">
+              <button 
+                onClick={handleImmediateExpressClean}
+                className="bg-red-500 hover:bg-red-600 text-white text-xs font-bold px-3 py-2 rounded-lg shadow-sm touch-manipulation flex items-center"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+                Express Clean Now!
+              </button>
+            </div>
           )}
         </div>
+
+        {showEditSchedule && (
+          <form onSubmit={handleUpdateSchedule} className="glass-panel p-4 rounded-xl shadow-inner border border-gray-200 dark:border-gray-700 animate-fade-in">
+            <h3 className="font-bold text-sm mb-3 text-gray-700 dark:text-gray-300">Schedule Next Cleaning</h3>
+            <div className="grid grid-cols-2 gap-3 mb-3">
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 mb-1">Date</label>
+                <input 
+                  type="date"
+                  value={scheduleData.date}
+                  onChange={e => setScheduleData({...scheduleData, date: e.target.value})}
+                  className="w-full glass-input px-2 py-2 rounded-lg focus:ring-2 outline-none font-medium text-sm"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 mb-1">Time (Deadline)</label>
+                <input 
+                  type="time"
+                  value={scheduleData.time}
+                  onChange={e => setScheduleData({...scheduleData, time: e.target.value})}
+                  className="w-full glass-input px-2 py-2 rounded-lg focus:ring-2 outline-none font-medium text-sm"
+                  required
+                />
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <button type="submit" className="flex-1 glass-button py-2 rounded-lg text-sm font-bold">Save Schedule</button>
+              <button type="button" onClick={() => setShowEditSchedule(false)} className="px-3 bg-gray-200 dark:bg-gray-800 rounded-lg text-sm font-bold">Cancel</button>
+            </div>
+          </form>
+        )}
 
         <div className="mt-6 flex justify-between items-end">
           <h3 className="text-lg font-bold">Checklist</h3>
           {user.role !== 'cleaner' && (
             <button 
               onClick={() => setShowAddChecklist(true)}
-              className="text-emerald-600 dark:text-emerald-400 text-sm font-semibold hover:underline touch-manipulation p-2"
+              className={`text-${prop?.theme}-600 dark:text-${prop?.theme}-400 text-sm font-semibold hover:underline touch-manipulation p-2`}
             >
               + Add Item
             </button>
           )}
-        </div>
+        </div></div>
 
         {showAddChecklist && (
           <form onSubmit={handleAddChecklist} className="glass-panel p-4 rounded-xl mb-4 flex gap-2">
