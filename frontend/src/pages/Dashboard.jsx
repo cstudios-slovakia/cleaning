@@ -448,20 +448,30 @@ export default function Dashboard({ user, onLogout }) {
             onClick={() => setSelectedRoom(room)}
             className={`glass-panel border-l-4 ${room.status === 'overdue' ? 'border-l-red-500 bg-red-500/5' : room.status === 'pending' ? 'border-l-orange-500 bg-orange-500/5' : 'border-l-emerald-500 opacity-70'} p-5 rounded-xl flex justify-between items-center touch-manipulation cursor-pointer mb-3 hover:shadow-md transition-shadow`}
           >
-            <div>
+            <div className="w-full pr-4">
               <h3 className={`font-bold text-lg ${room.status === 'clean' ? 'text-gray-600 dark:text-gray-300' : ''}`}>{room.name}</h3>
-              {room.status === 'overdue' && <p className="text-sm text-red-600 dark:text-red-400 font-semibold mt-1">{t('dashboard.overdue', { time: `${room.date} ${room.deadline}` })}</p>}
-              {room.status === 'pending' && <p className="text-sm text-orange-600 dark:text-orange-400 font-semibold mt-1">{t('dashboard.pending', { time: `${room.date} ${room.deadline}` })}</p>}
-              {room.status === 'clean' && <p className="text-sm text-emerald-600 dark:text-emerald-400 mt-1">{t('dashboard.cleaned_today', { name: room.cleanedBy || 'System' })}</p>}
               
-              <div className="flex gap-1 mt-2">
+              <div className="flex justify-between items-center mt-1">
+                <span className={`text-sm font-semibold ${
+                  room.status === 'overdue' ? 'text-red-600 dark:text-red-400' : 
+                  room.status === 'pending' ? 'text-orange-600 dark:text-orange-400' : 
+                  'text-emerald-600 dark:text-emerald-400'
+                }`}>
+                  {room.status === 'overdue' ? 'Overdue!' : room.status === 'pending' ? 'Pending' : `Cleaned by ${room.cleanedBy || 'System'}`}
+                </span>
+                <span className="text-xs text-gray-500 dark:text-gray-400 font-bold bg-white/50 dark:bg-black/30 px-2 py-1 rounded-md">
+                  Next: {room.date} {room.deadline}
+                </span>
+              </div>
+              
+              <div className="flex gap-1 mt-3">
                 {room.checklist.map((task, i) => (
                   <div key={i} className={`h-1.5 w-6 rounded-full ${task.done ? 'bg-emerald-500' : 'bg-gray-300 dark:bg-gray-600'}`}></div>
                 ))}
               </div>
             </div>
             
-            <div className="text-gray-400 pl-2">
+            <div className="text-gray-400 flex-shrink-0">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
@@ -503,15 +513,25 @@ export default function Dashboard({ user, onLogout }) {
             onClick={() => setSelectedRoom(room)}
             className={`glass-panel border-l-4 ${room.status === 'overdue' ? 'border-l-red-500 bg-red-500/5' : room.status === 'pending' ? 'border-l-orange-500 bg-orange-500/5' : 'border-l-emerald-500 opacity-70'} p-5 rounded-xl flex justify-between items-center touch-manipulation cursor-pointer mb-3 hover:shadow-md transition-shadow`}
           >
-            <div>
+            <div className="w-full pr-4">
               <p className="text-xs text-gray-500 mb-1">{prop.name}</p>
               <h3 className={`font-bold text-lg ${room.status === 'clean' ? 'text-gray-600 dark:text-gray-300' : ''}`}>{room.name}</h3>
-              {room.status === 'overdue' && <p className="text-sm text-red-600 dark:text-red-400 font-semibold mt-1">{t('dashboard.overdue', { time: `${room.date} ${room.deadline}` })}</p>}
-              {room.status === 'pending' && <p className="text-sm text-orange-600 dark:text-orange-400 font-semibold mt-1">{t('dashboard.pending', { time: `${room.date} ${room.deadline}` })}</p>}
-              {room.status === 'clean' && <p className="text-sm text-emerald-600 dark:text-emerald-400 mt-1">{t('dashboard.cleaned_today', { name: room.cleanedBy || 'System' })}</p>}
+              
+              <div className="flex justify-between items-center mt-1">
+                <span className={`text-sm font-semibold ${
+                  room.status === 'overdue' ? 'text-red-600 dark:text-red-400' : 
+                  room.status === 'pending' ? 'text-orange-600 dark:text-orange-400' : 
+                  'text-emerald-600 dark:text-emerald-400'
+                }`}>
+                  {room.status === 'overdue' ? 'Overdue!' : room.status === 'pending' ? 'Pending' : `Cleaned by ${room.cleanedBy || 'System'}`}
+                </span>
+                <span className="text-xs text-gray-500 dark:text-gray-400 font-bold bg-white/50 dark:bg-black/30 px-2 py-1 rounded-md">
+                  Next: {room.date} {room.deadline}
+                </span>
+              </div>
             </div>
             
-            <div className="text-gray-400 pl-2">
+            <div className="text-gray-400 flex-shrink-0">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
@@ -526,21 +546,50 @@ export default function Dashboard({ user, onLogout }) {
     </div>
   );
 
+  const handleCloneRoom = () => {
+    if (selectedRoom) {
+      const clonedRoom = {
+        ...selectedRoom,
+        id: Date.now(),
+        name: `${selectedRoom.name} - Copy`,
+        status: 'pending',
+        cleanedBy: null,
+        checklist: selectedRoom.checklist.map(t => ({...t, done: false}))
+      };
+      setRooms([...rooms, clonedRoom]);
+      setSelectedRoom(null); // Go back to overview to see the clone
+    }
+  };
+
   const renderRoomChecklist = () => {
     if (!selectedRoom) return null;
     const prop = properties.find(p => p.id === selectedRoom.propertyId);
 
     return (
       <div className="space-y-4">
-        <button 
-          onClick={() => { setSelectedRoom(null); setShowEditSchedule(false); }}
-          className="text-sm text-gray-500 mb-2 flex items-center hover:text-gray-800 dark:hover:text-gray-200 p-2 -ml-2 touch-manipulation"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
-            <path fillRule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clipRule="evenodd" />
-          </svg>
-          Back
-        </button>
+        <div className="flex justify-between items-center mb-2">
+          <button 
+            onClick={() => { setSelectedRoom(null); setShowEditSchedule(false); }}
+            className="text-sm text-gray-500 flex items-center hover:text-gray-800 dark:hover:text-gray-200 p-2 -ml-2 touch-manipulation"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clipRule="evenodd" />
+            </svg>
+            Back
+          </button>
+          
+          {user.role !== 'cleaner' && (
+            <button 
+              onClick={handleCloneRoom}
+              className="text-sm font-semibold text-amber-600 dark:text-amber-500 flex items-center bg-amber-50 dark:bg-amber-500/10 px-3 py-1.5 rounded-lg border border-amber-200 dark:border-amber-500/30"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" />
+              </svg>
+              Clone Room
+            </button>
+          )}
+        </div>
         
         <div className="glass-panel p-6 rounded-2xl bg-gradient-to-br from-white/60 to-white/30 dark:from-gray-800/60 dark:to-gray-900/30 relative overflow-hidden">
           {/* Quick Express Status Badge */}
@@ -563,12 +612,13 @@ export default function Dashboard({ user, onLogout }) {
                  </div>
               ) : (
                  <p className="text-sm text-gray-500 mt-1 flex items-center">
-                   <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                   </svg>
-                   Deadline: {selectedRoom.date} {selectedRoom.deadline}
+                   <span className="font-semibold text-orange-500 mr-2">{selectedRoom.status === 'overdue' ? 'OVERDUE' : 'PENDING'}</span>
                  </p>
               )}
+              
+              <div className="mt-3 inline-block bg-white/70 dark:bg-black/40 border border-gray-200 dark:border-gray-700 px-3 py-1.5 rounded-lg text-sm font-bold text-gray-700 dark:text-gray-300 shadow-sm">
+                Next Cleaning: {selectedRoom.date} {selectedRoom.deadline}
+              </div>
             </div>
             
             {user.role !== 'cleaner' && (
@@ -577,7 +627,7 @@ export default function Dashboard({ user, onLogout }) {
                   setScheduleData({ date: selectedRoom.date || new Date().toISOString().split('T')[0], time: selectedRoom.deadline || '12:00' });
                   setShowEditSchedule(!showEditSchedule);
                 }}
-                className="bg-white/50 dark:bg-black/30 p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-white/80 transition-colors touch-manipulation"
+                className="bg-white/50 dark:bg-black/30 p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-white/80 transition-colors touch-manipulation ml-2"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                   <path fillRule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
